@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  db:
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    image: "postgres:13"
+    env_file:
+      - .env
+    networks:
+      - gomoku_network
+  api:
+    image: "gomoku:0.1"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/usr/src/gomoku
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - gomoku_network
+
+volumes:
+  db_data:
+
+networks:
+  gomoku_network:
+    name: gomoku_network

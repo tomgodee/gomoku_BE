@@ -1,0 +1,83 @@
+{
+  "name": "gomoku-backend",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "14.x"
+  },
+  "scripts": {
+    "start": "npm run prod",
+    "app": "node -r dotenv/config ./dist-app/bin/www.js",
+    "clean": "rimraf dist-app",
+    "transpile": "babel ./app --out-dir dist-app",
+    "build": "npm run clean && npm run transpile",
+    "dev": "NODE_ENV=development npm-run-all build app",
+    "prod": "NODE_ENV=production npm-run-all build app",
+    "watch": "nodemon",
+    "start:pm2": "pm2 start ./dist-app/bin/www.js",
+    "config:pm2": "pm2 start ecosystem.config.js",
+    "reload:pm2": "pm2 reload ./dist-app/bin/www.js --update-env",
+    "stop:pm2": "pm2 stop ./dist-app/bin/www.js",
+    "delete:pm2": "pm2 delete ./dist-app/bin/www.js",
+    "status:pm2": "pm2 status",
+    "log:pm2": "pm2 monit",
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize-cli db:migrate:undo:all",
+    "seed": "sequelize db:seed:all",
+    "seed:undo": "sequelize-cli db:seed:undo:all"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.14.3",
+    "@babel/core": "^7.14.3",
+    "@babel/preset-env": "^7.14.4",
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "~1.4.4",
+    "core-js": "^3.13.1",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "debug": "~2.6.9",
+    "dotenv": "^10.0.0",
+    "express": "~4.16.1",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1",
+    "morgan": "~1.9.1",
+    "pg": "^8.7.1",
+    "pg-hstore": "^2.3.4",
+    "phe": "^0.6.0",
+    "pm2": "^5.1.0",
+    "regenerator-runtime": "^0.13.7",
+    "rimraf": "^3.0.2",
+    "sequelize": "^6.6.5",
+    "sequelize-cli": "^6.2.0",
+    "socket.io": "^4.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "useBuiltIns": "usage",
+          "corejs": 3,
+          "targets": "> 0.25%, not dead"
+        }
+      ]
+    ]
+  },
+  "nodemonConfig": {
+    "delay": 1000,
+    "exec": "npm run dev",
+    "watch": [
+      "app/*"
+    ],
+    "ignore": [
+      "**/__tests__/**",
+      "*.test.js",
+      "*.spec.js"
+    ]
+  }
+}

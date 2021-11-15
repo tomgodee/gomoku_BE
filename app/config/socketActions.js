@@ -1,6 +1,8 @@
 export const MESSAGE_SENT = 'message sent';
 export const JOIN_ROOM = 'join room';
-export const GAME_START = 'game start';
+export const CLIENT_GAME_START = 'client game start';
+export const SERVER_GAME_START = 'server game start';
+export const GAME_OVER = 'game over';
 export const UPDATE_PLAYERS = 'update players';
 export const UPDATE_TABLE = 'update table';
 export const CLIENT_CHECK = 'client check';

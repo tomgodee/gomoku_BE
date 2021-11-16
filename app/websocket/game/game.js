@@ -9,6 +9,35 @@ const DEFAULT_ROOM = {
   id: 0,
 }
 
+const findDrawingLine = (squareLine, type) => {
+  let drawingLine = [];
+  if (type.circle) {
+    for (let i = 0; i < squareLine.length; i += 1) {
+      if (squareLine[i].circle) {
+        drawingLine.push(squareLine[i].id);
+      } else if (drawingLine.length < 5 && squareLine[i].ex) {
+        drawingLine = [];
+      }
+      if (drawingLine.length === 5) i = squareLine.length;
+    }
+  }
+
+  if (type.ex) {
+    for (let i = 0; i < squareLine.length; i += 1) {
+      if (squareLine[i].ex) {
+        drawingLine.push(squareLine[i].id);
+      } else if (drawingLine.length < 5 && squareLine[i].circle) {
+        drawingLine = [];
+      }
+      if (drawingLine.length === 5) i = squareLine.length;
+    }
+  }
+
+  if (drawingLine.length !== 5) drawingLine = [];
+
+  return drawingLine;
+}
+
 export default function gameHandler(io, socket, state) {
   const gameStart = async (data) => {
     const room = state.rooms.get(data.room.id);
@@ -45,23 +74,31 @@ export default function gameHandler(io, socket, state) {
     let [y, x] = square.id.split('-');
     y = Number(y);
     x = Number(x);
-    let line = [];
+    let squareLine = [];
     for (let i = 4; i > -5; i -= 1) {
       if ((y - i) >= 0 && (y - i) < 10) {
         const yIndex = y - i > 0 ? (y - i) : '';
-        line.push(board[`${yIndex}${x}`])
+        squareLine.push(board[`${yIndex}${x}`])
       }
     }
 
-    line = line.map(symbol => {
+    const line = squareLine.map(symbol => {
       if (symbol.circle) return 'O';
       else if (symbol.ex) return 'X';
       return 'N';
     }).join('');
+    
+    const circle =  checkCircleLine(line);
+    const ex = checkExLine(line);
+    const drawingLine = findDrawingLine(squareLine, {
+      circle,
+      ex,
+    });
 
     return {
-      circle: checkCircleLine(line),
-      ex: checkExLine(line)
+      circle,
+      ex,
+      drawingLine,
     } 
   };
 
@@ -69,23 +106,31 @@ export default function gameHandler(io, socket, state) {
     let [y, x] = square.id.split('-');
     y = Number(y);
     x = Number(x);
-    let line = [];
+    let squareLine = [];
     for (let i = 4; i > -5; i -= 1) {
       if ((x - i) >= 0 && (x - i) < 10) {
         const yIndex = y === 0 ? '' : y;
-        line.push(board[`${yIndex}${x - i}`])
+        squareLine.push(board[`${yIndex}${x - i}`])
       }
     }
 
-    line = line.map(symbol => {
+    const line = squareLine.map(symbol => {
       if (symbol.circle) return 'O';
       else if (symbol.ex) return 'X';
       return 'N';
     }).join('');
 
+    const circle =  checkCircleLine(line);
+    const ex = checkExLine(line);
+    const drawingLine = findDrawingLine(squareLine, {
+      circle,
+      ex,
+    });
+
     return {
-      circle: checkCircleLine(line),
-      ex: checkExLine(line)
+      circle,
+      ex,
+      drawingLine,
     }
   };
 
@@ -123,7 +168,9 @@ export default function gameHandler(io, socket, state) {
 
     return {
       circle: checkCircleLine(ltrLine) || checkCircleLine(rtlLine),
-      ex: checkExLine(ltrLine) || checkExLine(rtlLine)
+      ex: checkExLine(ltrLine) || checkExLine(rtlLine),
+      // TODO: Continue here
+      drawingLine: [],
     } 
   };
   
@@ -139,6 +186,7 @@ export default function gameHandler(io, socket, state) {
     return {
       circle: verticalResult.circle || horizontalResult.circle || diagonalResult.circle,
       ex: verticalResult.ex || horizontalResult.ex || diagonalResult.ex,
+      drawingLine: verticalResult.drawingLine || horizontalResult.drawingLine || diagonalResult.drawingLine,
     }
   }
 
@@ -157,6 +205,9 @@ export default function gameHandler(io, socket, state) {
     if (winningCondition.circle || winningCondition.ex) {
       if (winningCondition.ex) room.players[0].score += 1;
       else room.players[1].score += 1;
+
+      room.players[0].myTurn = false;
+      room.players[1].myTurn = false;
       io.to(room.id).emit(GAME_OVER, winningCondition);
     }
 

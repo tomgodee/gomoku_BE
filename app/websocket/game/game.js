@@ -138,39 +138,58 @@ export default function gameHandler(io, socket, state) {
     let [y, x] = square.id.split('-');
     y = Number(y);
     x = Number(x);
-    let ltrLine = [];
+    let ltrSquareLine = [];
     for (let i = 4; i > -5; i -= 1) {
       if ((x - i) >= 0 && (x - i) < 10 && (y - i) >= 0 && (y - i) < 10) {
         const yIndex = y - i > 0 ? (y - i) : '';
-        ltrLine.push(board[`${yIndex}${x - i}`])
+        ltrSquareLine.push(board[`${yIndex}${x - i}`])
       }
     }
-    
-    let rtlLine = [];
+
+    const ltrLine = ltrSquareLine.map(symbol => {
+      if (symbol.circle) return 'O';
+      else if (symbol.ex) return 'X';
+      return 'N';
+    }).join('');
+
+
+    let rtlSquareLine = [];
     for (let i = 4; i > -5; i -= 1) {
       if ((x - i) >= 0 && (x - i) < 10 && (y + i) >= 0 && (y + i) < 10) {
         const yIndex = y + i > 0 ? (y + i) : '';
-        rtlLine.push(board[`${yIndex}${x - i}`])
+        rtlSquareLine.push(board[`${yIndex}${x - i}`])
       }
     }
-   
-    ltrLine = ltrLine.map(symbol => {
+
+    const rtlLine = rtlSquareLine.map(symbol => {
       if (symbol.circle) return 'O';
       else if (symbol.ex) return 'X';
       return 'N';
     }).join('');
 
-    rtlLine = rtlLine.map(symbol => {
-      if (symbol.circle) return 'O';
-      else if (symbol.ex) return 'X';
-      return 'N';
-    }).join('');
+
+    const ltrCircle =  checkCircleLine(ltrLine);
+    const ltrEx = checkExLine(ltrLine);
+    const ltrDrawingLine = findDrawingLine(ltrSquareLine, {
+      circle: ltrCircle,
+      ex: ltrEx,
+    });
+
+    const rtlCircle =  checkCircleLine(rtlLine);
+    const rtlEx = checkExLine(rtlLine);
+    const rtlDrawingLine = findDrawingLine(rtlSquareLine, {
+      circle: rtlCircle,
+      ex: rtlEx,
+    });
+
+    let drawingLine = [];
+    if (ltrDrawingLine.length > 0) drawingLine = ltrDrawingLine;
+    if (rtlDrawingLine.length > 0) drawingLine = rtlDrawingLine;
 
     return {
-      circle: checkCircleLine(ltrLine) || checkCircleLine(rtlLine),
-      ex: checkExLine(ltrLine) || checkExLine(rtlLine),
-      // TODO: Continue here
-      drawingLine: [],
+      circle: ltrCircle || rtlCircle,
+      ex: ltrEx || rtlEx,
+      drawingLine,
     } 
   };
   
@@ -179,14 +198,19 @@ export default function gameHandler(io, socket, state) {
     if (!board[index].circle && !board[index].ex) {
       board[index] = square;
     }
-    const verticalResult = checkVertically(square, board)
-    const horizontalResult = checkHorizontally(square, board)
+    const verticalResult = checkVertically(square, board);
+    const horizontalResult = checkHorizontally(square, board);
     const diagonalResult = checkDiagonally(square, board);
+
+    let drawingLine = [];
+    if (verticalResult.drawingLine.length > 0) drawingLine = verticalResult.drawingLine;
+    if (horizontalResult.drawingLine.length > 0) drawingLine = horizontalResult.drawingLine;
+    if (diagonalResult.drawingLine.length > 0) drawingLine = diagonalResult.drawingLine;
 
     return {
       circle: verticalResult.circle || horizontalResult.circle || diagonalResult.circle,
       ex: verticalResult.ex || horizontalResult.ex || diagonalResult.ex,
-      drawingLine: verticalResult.drawingLine || horizontalResult.drawingLine || diagonalResult.drawingLine,
+      drawingLine,
     }
   }
 

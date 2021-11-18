@@ -183,13 +183,21 @@ export default function gameHandler(io, socket, state) {
     });
 
     let drawingLine = [];
-    if (ltrDrawingLine.length > 0) drawingLine = ltrDrawingLine;
-    if (rtlDrawingLine.length > 0) drawingLine = rtlDrawingLine;
+    let direction = '';
+    if (ltrDrawingLine.length > 0) {
+      drawingLine = ltrDrawingLine;
+      direction = 'ltr';
+    }
+    if (rtlDrawingLine.length > 0) {
+      drawingLine = rtlDrawingLine;
+      direction = 'rtl';
+    }
 
     return {
       circle: ltrCircle || rtlCircle,
       ex: ltrEx || rtlEx,
       drawingLine,
+      direction,
     } 
   };
   
@@ -203,14 +211,25 @@ export default function gameHandler(io, socket, state) {
     const diagonalResult = checkDiagonally(square, board);
 
     let drawingLine = [];
-    if (verticalResult.drawingLine.length > 0) drawingLine = verticalResult.drawingLine;
-    if (horizontalResult.drawingLine.length > 0) drawingLine = horizontalResult.drawingLine;
-    if (diagonalResult.drawingLine.length > 0) drawingLine = diagonalResult.drawingLine;
+    let direction = '';
+    if (verticalResult.drawingLine.length > 0) {
+      drawingLine = verticalResult.drawingLine;
+      direction = 'vertical';
+    }
+    if (horizontalResult.drawingLine.length > 0) {
+      drawingLine = horizontalResult.drawingLine;
+      direction = 'horizontal';
+    }
+    if (diagonalResult.drawingLine.length > 0) {
+      drawingLine = diagonalResult.drawingLine;
+      direction = diagonalResult.direction;
+    }
 
     return {
       circle: verticalResult.circle || horizontalResult.circle || diagonalResult.circle,
       ex: verticalResult.ex || horizontalResult.ex || diagonalResult.ex,
       drawingLine,
+      direction,
     }
   }
 

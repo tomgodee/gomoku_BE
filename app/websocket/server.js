@@ -28,6 +28,11 @@ const onConnection = (socket) => {
 
       state.rooms.set(room_id, room);
       io.to(room.id).emit(GAME_OVER);
+      room.players = room.players.map((player) => {
+        player.score = 0;
+        player.myTurn = false;
+        return player;
+      });
       io.to(room_id).emit(UPDATE_PLAYERS, room.players);
     }
     console.log("User has disconnected: " + socket.id + " because of " + reason);
